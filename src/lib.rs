@@ -14,10 +14,7 @@ impl KvStore {
     }
 
     pub fn get(&mut self, key: String) -> Option<String> {
-        match self.m.get(&key) {
-            None => None,
-            Some(val) => Some(val.to_owned()),
-        }
+        self.m.get(&key).cloned()
     }
 
     pub fn remove(&mut self, key: String) {
