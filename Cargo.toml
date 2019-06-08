@@ -5,6 +5,7 @@ authors = ["qw4990 <qw4990@163.com>"]
 edition = "2018"
 
 [dependencies]
+clay = "2.33.0"
 
 [dev-dependencies]
 assert_cmd = "0.11"
