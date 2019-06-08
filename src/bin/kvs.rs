@@ -16,5 +16,20 @@ fn main() {
         println!("Version {}", env!("CARGO_PKG_VERSION"));
         exit(0);
     }
+
+    match matches.value_of("cmd").unwrap() {
+        "get" => {
+            panic!("unimplemented");
+        }
+        "set" => {
+            panic!("unimplemented");
+        }
+        "rm" => {
+            panic!("unimplemented");
+        }
+        _ => {
+            panic!("unimplemented");
+        }
+    }
     exit(1);
 }
