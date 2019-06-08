@@ -2,10 +2,11 @@ extern crate clap;
 
 use std::process::exit;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
 
 fn main() {
-    let matches = App::new("kvs").version(env!("CARGO_PKG_VERSION"))
+    let matches = App::new("kvs")
+        .version(env!("CARGO_PKG_VERSION"))
         .arg(Arg::with_name("cmd").index(1).required(false))
         .arg(Arg::with_name("key").index(2).required(false))
         .arg(Arg::with_name("val").index(3).required(false))
@@ -31,5 +32,4 @@ fn main() {
             panic!("unimplemented");
         }
     }
-    exit(1);
 }
