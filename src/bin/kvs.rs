@@ -26,15 +26,17 @@ fn main() -> Result<()> {
 
     match matches.value_of("cmd").unwrap() {
         "get" => {
-            panic!("unimplemented");
+            let key = matches.value_of("key").unwrap().to_owned();
+            db.get(key)?;
         }
         "set" => {
             let key = matches.value_of("key").unwrap().to_owned();
             let val = matches.value_of("val").unwrap().to_owned();
-            db.set(key, val).unwrap();
+            db.set(key, val)?;
         }
         "rm" => {
-            panic!("unimplemented");
+            let key = matches.value_of("key").unwrap().to_owned();
+            db.remove(key)?;
         }
         _ => {
             panic!("unimplemented");
