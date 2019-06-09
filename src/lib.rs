@@ -3,7 +3,7 @@ use std::convert::From;
 use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::{Seek, SeekFrom};
+use std::io::{Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::result;
@@ -65,7 +65,7 @@ impl KvStore {
 
     fn load(&mut self) -> Result<()> {
         let r = File::open(self.db_file_path().as_path());
-        let f: File;
+        let mut f: File;
         match r {
             Err(e) => {
                 match e.kind() {
@@ -82,6 +82,7 @@ impl KvStore {
                 f = v
             }
         }
+        f.seek(SeekFrom::Start(0))?;
         let mut stream = Deserializer::from_reader(f).into_iter::<KvsCmd>();
         while let Some(cmd) = stream.next() {
             match cmd? {
@@ -100,25 +101,23 @@ impl KvStore {
     pub fn set(&mut self, key: String, val: String) -> Result<()> {
         let cmd = KvsCmd::Set { key: key.clone(), val: val.clone() };
         let ser = serde_json::to_string(&cmd)?;
-        fs::write(self.db_file_path().as_path(), ser)?;
+        let mut f = fs::OpenOptions::new().create(true).
+            write(true).append(true).open(self.db_file_path().as_path())?;
+        f.write_all(ser.into_bytes().as_slice())?;
         self.kvs.insert(key, val);
         Ok(())
     }
 
     /// Get ...
     pub fn get(&mut self, key: String) -> Result<Option<String>> {
-        if !self.kvs.contains_key(&key) {
-            println!("Key not found");
-            exit(0);
-        }
-        Ok(None)
+        Ok(self.kvs.get(&key).cloned())
     }
 
     /// Remove ...
     pub fn remove(&mut self, key: String) -> Result<()> {
         if !self.kvs.contains_key(&key) {
             println!("Key not found");
-            exit(0);
+            exit(1);
         }
 
         let cmd = KvsCmd::Rm { key: key.clone() };

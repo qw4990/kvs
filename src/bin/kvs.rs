@@ -1,5 +1,6 @@
 extern crate clap;
 
+use std::env;
 use std::path;
 use std::process::exit;
 
@@ -23,11 +24,23 @@ fn main() -> Result<()> {
 
     let p = path::Path::new("./");
     let mut db = KvStore::open(&p)?;
+    let argc = env::args().len();
 
     match matches.value_of("cmd").unwrap() {
         "get" => {
+            if argc != 3 {
+                panic!("invalid");
+            }
             let key = matches.value_of("key").unwrap().to_owned();
-            db.get(key)?;
+            match db.get(key)? {
+                None => {
+                    println!("Key not found");
+                    exit(0);
+                }
+                Some(val) => {
+                    println!("{}", val);
+                }
+            }
         }
         "set" => {
             let key = matches.value_of("key").unwrap().to_owned();
