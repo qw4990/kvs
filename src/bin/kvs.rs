@@ -1,12 +1,13 @@
 extern crate clap;
 
+use std::path;
 use std::process::exit;
 
 use clap::{App, Arg};
 
-use kvs::{KvsError, KvStore};
+use kvs::{KvsError, KvStore, Result};
 
-fn main() {
+fn main() -> Result<()> {
     let matches = App::new("kvs")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(Arg::with_name("cmd").index(1).required(false))
@@ -20,12 +21,17 @@ fn main() {
         exit(0);
     }
 
+    let p = path::Path::new("./");
+    let mut db = KvStore::open(&p)?;
+
     match matches.value_of("cmd").unwrap() {
         "get" => {
             panic!("unimplemented");
         }
         "set" => {
-            panic!("unimplemented");
+            let key = matches.value_of("key").unwrap().to_owned();
+            let val = matches.value_of("val").unwrap().to_owned();
+            db.set(key, val).unwrap();
         }
         "rm" => {
             panic!("unimplemented");
@@ -34,4 +40,6 @@ fn main() {
             panic!("unimplemented");
         }
     }
+
+    Ok(())
 }
