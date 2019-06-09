@@ -4,6 +4,8 @@ use std::process::exit;
 
 use clap::{App, Arg};
 
+use kvs::{KvsError, KvStore};
+
 fn main() {
     let matches = App::new("kvs")
         .version(env!("CARGO_PKG_VERSION"))
