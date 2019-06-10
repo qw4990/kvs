@@ -6,7 +6,7 @@ use std::process::exit;
 
 use clap::{App, Arg};
 
-use kvs::{KvsError, KvStore, Result};
+use kvs::{KvsError, KvStore, Result, KvsEngine};
 
 fn main() -> Result<()> {
     let matches = App::new("kvs")

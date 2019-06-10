@@ -13,6 +13,12 @@ use failure::Fail;
 use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
 
+pub trait KvsEngine {
+    fn set(&mut self, key: String, value: String) -> Result<()>;
+    fn get(&mut self, key: String) -> Result<Option<String>>;
+    fn remove(&mut self, key: String) -> Result<()>;
+}
+
 /// Error type for kvs
 #[derive(Fail, Debug)]
 pub enum KvsError {
@@ -96,9 +102,11 @@ impl KvStore {
         }
         Ok(())
     }
+}
 
+impl KvsEngine for KvStore {
     /// Set a new KV.
-    pub fn set(&mut self, key: String, val: String) -> Result<()> {
+    fn set(&mut self, key: String, val: String) -> Result<()> {
         let cmd = KvsCmd::Set { key: key.clone(), val: val.clone() };
         let ser = serde_json::to_string(&cmd)?;
         let mut f = fs::OpenOptions::new().create(true).
@@ -109,12 +117,12 @@ impl KvStore {
     }
 
     /// Get ...
-    pub fn get(&mut self, key: String) -> Result<Option<String>> {
+    fn get(&mut self, key: String) -> Result<Option<String>> {
         Ok(self.kvs.get(&key).cloned())
     }
 
     /// Remove ...
-    pub fn remove(&mut self, key: String) -> Result<()> {
+    fn remove(&mut self, key: String) -> Result<()> {
         if !self.kvs.contains_key(&key) {
             println!("Key not found");
             exit(1);
