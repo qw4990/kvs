@@ -1,6 +1,7 @@
 extern crate clap;
 
 use std::env;
+use std::net::TcpListener;
 use std::path;
 use std::process::exit;
 
@@ -9,6 +10,7 @@ use clap::{App, Arg};
 use kvs::{KvsEngine, KvsError, KvStore, Result};
 
 fn main() -> Result<()> {
+    // parse args
     let matches = App::new("kvs-server")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(Arg::with_name("addr").long("addr").takes_value(true).required(false))
@@ -40,44 +42,22 @@ fn main() -> Result<()> {
             eng = val.to_owned();
         }
     }
-    
+
     if eng != "kvs" && eng != "sled" {
         panic!("invalid engine");
     }
 
+    // open DB and get a handler
     let p = path::Path::new("./");
     let mut db = KvStore::open(&p)?;
-    let argc = env::args().len();
 
-    match matches.value_of("cmd").unwrap() {
-        "get" => {
-            if argc != 3 {
-                panic!("invalid");
-            }
-            let key = matches.value_of("key").unwrap().to_owned();
-            match db.get(key)? {
-                None => {
-                    println!("Key not found");
-                    exit(0);
-                }
-                Some(val) => {
-                    println!("{}", val);
-                }
-            }
-        }
-        "set" => {
-            let key = matches.value_of("key").unwrap().to_owned();
-            let val = matches.value_of("val").unwrap().to_owned();
-            db.set(key, val)?;
-        }
-        "rm" => {
-            let key = matches.value_of("key").unwrap().to_owned();
-            db.remove(key)?;
-        }
-        _ => {
-            panic!("unimplemented");
-        }
+    // listen network
+    let listener = TcpListener::bind(addr).unwrap();
+    println!("Server start");
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        println!("Connection established!");
     }
-
     Ok(())
 }
