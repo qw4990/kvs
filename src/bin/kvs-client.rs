@@ -9,7 +9,7 @@ use clap::{App, Arg};
 use kvs::{KvsError, KvStore, Result, KvsEngine};
 
 fn main() -> Result<()> {
-    let matches = App::new("kvs")
+    let matches = App::new("kvs-client")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(Arg::with_name("cmd").index(1).required(false))
         .arg(Arg::with_name("key").index(2).required(false))
