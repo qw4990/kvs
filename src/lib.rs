@@ -46,6 +46,7 @@ impl From<io::Error> for KvsError {
 pub enum KvsCmd {
     Rm { key: String },
     Set { key: String, val: String },
+    Get { key: String },
 }
 
 /// Result type for kvs
@@ -97,6 +98,9 @@ impl KvStore {
                 }
                 KvsCmd::Set { key, val } => {
                     self.kvs.insert(key, val);
+                }
+                KvsCmd::Get { key } => {
+                    panic!("can't happen");
                 }
             }
         }

@@ -10,8 +10,10 @@ use std::process::exit;
 
 use clap::{App, Arg};
 use log::Level;
+use serde::{Deserialize, Serialize};
+use serde_json::Deserializer;
 
-use kvs::{KvsEngine, KvsError, KvStore, Result};
+use kvs::{KvsCmd, KvsEngine, KvsError, KvStore, Result};
 
 fn main() -> Result<()> {
     env_logger::init();
@@ -63,6 +65,20 @@ fn main() -> Result<()> {
     let listener = TcpListener::bind(addr).unwrap();
     for stream in listener.incoming() {
         let stream = stream.unwrap();
+        let mut stream = Deserializer::from_reader(stream).into_iter::<KvsCmd>();
+        if let Some(cmd) = stream.next() {
+            match cmd? {
+                KvsCmd::Rm { key } => {
+                    // TODO
+                }
+                KvsCmd::Set { key, val } => {
+                    // TODO
+                }
+                KvsCmd::Get { key } => {
+                    // TODO
+                }
+            }
+        }
 
         println!("Connection established!");
     }
