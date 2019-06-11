@@ -4,6 +4,7 @@ extern crate env_logger;
 extern crate log;
 
 use std::env;
+use std::io::Write;
 use std::net::TcpListener;
 use std::path;
 use std::process::exit;
@@ -64,18 +65,25 @@ fn main() -> Result<()> {
     // listen network
     let listener = TcpListener::bind(addr).unwrap();
     for stream in listener.incoming() {
-        let stream = stream.unwrap();
-        let mut stream = Deserializer::from_reader(stream).into_iter::<KvsCmd>();
+        let mut conn = stream.unwrap();
+        let mut stream = Deserializer::from_reader(&conn).into_iter::<KvsCmd>();
         if let Some(cmd) = stream.next() {
             match cmd? {
                 KvsCmd::Rm { key } => {
-                    // TODO
+                    db.remove(key)?;
                 }
                 KvsCmd::Set { key, val } => {
-                    // TODO
+                    db.set(key, val)?;
                 }
                 KvsCmd::Get { key } => {
-                    // TODO
+                    match db.get(key)? {
+                        None => {
+                            conn.write("<nil>".as_bytes());
+                        }
+                        Some(val) => {
+                            conn.write(val.into_bytes().as_slice());
+                        }
+                    }
                 }
             }
         }
