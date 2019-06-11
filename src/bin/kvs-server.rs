@@ -1,4 +1,7 @@
 extern crate clap;
+extern crate env_logger;
+#[macro_use]
+extern crate log;
 
 use std::env;
 use std::net::TcpListener;
@@ -6,10 +9,13 @@ use std::path;
 use std::process::exit;
 
 use clap::{App, Arg};
+use log::Level;
 
 use kvs::{KvsEngine, KvsError, KvStore, Result};
 
 fn main() -> Result<()> {
+    env_logger::init();
+    error!("servr starting...");
     // parse args
     let matches = App::new("kvs-server")
         .version(env!("CARGO_PKG_VERSION"))
@@ -47,13 +53,14 @@ fn main() -> Result<()> {
         panic!("invalid engine");
     }
 
+    error!("Version: {:?}, Addr: {:?}, Engine: {:?}", env!("CARGO_PKG_VERSION"), addr, eng);
+
     // open DB and get a handler
     let p = path::Path::new("./");
     let mut db = KvStore::open(&p)?;
 
     // listen network
     let listener = TcpListener::bind(addr).unwrap();
-    println!("Server start");
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
