@@ -7,8 +7,9 @@ use std::path;
 use std::process::exit;
 
 use clap::{App, Arg};
+use serde_json::Deserializer;
 
-use kvs::{KvsEngine, KvsError, KvStore, Result};
+use kvs::{KvsCmd, KvsEngine, KvsError, KvsResp, KvStore, Result};
 
 fn main() -> Result<()> {
     let matches = App::new("kvs-client")
@@ -25,7 +26,7 @@ fn main() -> Result<()> {
     }
 
     // connect to database
-    let mut db_stream = TcpStream::connect("127.0.0.1:34254")?;
+    let mut db_stream = TcpStream::connect("127.0.0.1:4000")?;
     let argc = env::args().len();
     match matches.value_of("cmd").unwrap() {
         "get" => {
@@ -59,14 +60,33 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+fn request(db_stream: &mut TcpStream, cmd: &KvsCmd) -> Result<KvsResp> {
+    let data = serde_json::to_string(cmd)?;
+    db_stream.write_all(data.as_bytes())?;
+    let mut ret_data = String::new();
+    db_stream.read_to_string(&mut ret_data)?;
+    let mut stream = Deserializer::from_slice(&ret_data.as_bytes()).into_iter::<KvsResp>();
+    if let Some(cmd) = stream.next() {
+        return Ok(cmd?);
+    }
+    panic!("cannot happen");
+}
+
 fn get(db_stream: &mut TcpStream, key: String) -> Result<Option<String>> {
-    Ok(Some("xxx".to_owned()))
+    let resp = request(db_stream, &KvsCmd::Get { key })?;
+    if resp.not_found {
+        Ok(None)
+    } else {
+        Ok(Some(resp.val))
+    }
 }
 
 fn set(db_stream: &mut TcpStream, key: String, val: String) -> Result<()> {
+    let resp = request(db_stream, &KvsCmd::Set { key, val })?;
     Ok(())
 }
 
 fn rm(db_stream: &mut TcpStream, key: String) -> Result<()> {
+    let resp = request(db_stream, &KvsCmd::Rm { key })?;
     Ok(())
 }

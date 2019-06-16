@@ -5,7 +5,7 @@ extern crate log;
 
 use std::env;
 use std::io::Write;
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
 use std::path;
 use std::process::exit;
 
@@ -15,6 +15,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
 
 use kvs::{KvsCmd, KvsEngine, KvsError, KvStore, Result};
+
+fn write_resp(conn: &mut TcpStream, val: String, not_found: bool) -> Result<()> {
+    let resp = kvs::KvsResp { val, not_found, err_code: 0 };
+    let data = serde_json::to_string(&resp)?;
+    conn.write_all(data.as_bytes())?;
+    Ok(())
+}
 
 fn main() -> Result<()> {
     env_logger::init();
@@ -71,19 +78,24 @@ fn main() -> Result<()> {
             match cmd? {
                 KvsCmd::Rm { key } => {
                     db.remove(key)?;
+                    write_resp(&mut conn, "".to_owned(), false)?;
                 }
                 KvsCmd::Set { key, val } => {
                     db.set(key, val)?;
+                    write_resp(&mut conn, "".to_owned(), false)?;
                 }
                 KvsCmd::Get { key } => {
                     match db.get(key)? {
                         None => {
-                            conn.write("<nil>".as_bytes());
+                            write_resp(&mut conn, "".to_owned(), true)?;
                         }
                         Some(val) => {
-                            conn.write(val.into_bytes().as_slice());
+                            write_resp(&mut conn, val, false)?;
                         }
                     }
+                }
+                _ => {
+                    panic!("cannot happen");
                 }
             }
         }

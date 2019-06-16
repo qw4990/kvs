@@ -28,6 +28,8 @@ pub enum KvsError {
     Serde(#[cause] serde_json::Error),
     #[fail(display = "{}", _0)]
     Io(#[cause] io::Error),
+    #[fail(display = "None")]
+    None,
 }
 
 impl From<serde_json::error::Error> for KvsError {
@@ -47,6 +49,13 @@ pub enum KvsCmd {
     Rm { key: String },
     Set { key: String, val: String },
     Get { key: String },
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KvsResp {
+    pub val: String,
+    pub not_found: bool,
+    pub err_code: i32,
 }
 
 /// Result type for kvs
@@ -99,8 +108,8 @@ impl KvStore {
                 KvsCmd::Set { key, val } => {
                     self.kvs.insert(key, val);
                 }
-                KvsCmd::Get { key } => {
-                    panic!("can't happen");
+                _ => {
+                    panic!("cannot happen");
                 }
             }
         }
